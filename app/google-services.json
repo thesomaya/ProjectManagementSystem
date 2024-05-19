@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "468058782678",
+    "project_id": "project-management-syste-b8a56",
+    "storage_bucket": "project-management-syste-b8a56.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:468058782678:android:e636042c481fcdc2784277",
+        "android_client_info": {
+          "package_name": "com.example.myjavaapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0Izu0XsyQR4VtMCP99NFcsr14zq1vqrU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
