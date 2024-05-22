@@ -1,10 +1,6 @@
 package com.example.myjavaapplication.controllers;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Base64;
-
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -13,12 +9,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.myjavaapplication.model.User;
 
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class VolleyRequest {
@@ -34,12 +26,12 @@ public class VolleyRequest {
     public void getRequest(String url, final VolleyResponseListener<JSONObject> onSuccess, final VolleyErrorListener onError) {
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> onSuccess.onSuccess(response),
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        onError.onError(error != null ? error.getMessage() : "Unknown error occurred");
-                    }
-                });
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    onError.onError(error != null ? error.getMessage() : "Unknown error occurred");
+                }
+            });
 
         queue.add(jsonObjectRequest);
     }
@@ -63,6 +55,7 @@ public class VolleyRequest {
 
         queue.add(jsonObjectRequest);
     }
+
 
     public interface VolleyResponseListener<T> {
         void onSuccess(T response);

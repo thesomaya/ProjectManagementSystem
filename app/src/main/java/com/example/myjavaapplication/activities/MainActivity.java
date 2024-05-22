@@ -67,10 +67,10 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         binding.navView.setNavigationItemSelectedListener(this);
 
         fab_create_board.setOnClickListener(view1 -> {
-            Intent intent = new Intent(MainActivity.this, CreateBoardActivity.class);
-            startActivity(intent);
-            finish();
-        });
+        Intent intent = new Intent(MainActivity.this, CreateBoardActivity.class);
+        startActivity(intent);
+        finish();
+    });
     }
 
     @Override
@@ -126,10 +126,10 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         View headerView = binding.navView.getHeaderView(0);
         ImageView navUserImage = headerView.findViewById(R.id.iv_user_image);
         Glide.with(this)
-                .load(user.getImage())
-                .centerCrop()
-                .placeholder(R.drawable.ic_user_place_holder)
-                .into(navUserImage);
+            .load(user.getImage())
+            .centerCrop()
+            .placeholder(R.drawable.ic_user_place_holder)
+            .into(navUserImage);
 
         TextView navUsername = headerView.findViewById(R.id.tv_username);
         navUsername.setText(user.getName());
@@ -141,13 +141,18 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private void fetchBoardsFromDatabase() {
         SharedPreferences sharedPref = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
         int userId = sharedPref.getInt("USER_ID", -1);
-        Log.e("Main Activity", String.valueOf(userId));
+        Log.e("userIdddd", String.valueOf(userId));
 
+        // Instantiate VolleyRequest
         VolleyRequest volleyRequest = new VolleyRequest(this);
 
+        // Define URL for GET request
         String url = links.LINK_READ_BOARD + "?current_user_id=" + userId;
 
+
+        // Make the GET request
         volleyRequest.getRequest(url, response -> {
+            Log.e("userIdddd", "re");
             try {
                 String status = response.getString("status");
                 if (status.equals("success")) {
@@ -158,22 +163,21 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                         int boardId = boardObject.getInt("board_id");
                         String boardName = boardObject.getString("board_name");
                         String createdBy = boardObject.getString("created_by");
-                        String image = boardObject.getString("image");
-                        Board board = new Board(boardId,boardName, createdBy,image);
-                        // Add the board to the list
-                        boardsList.add(board);
+                            Board board = new Board(boardId,boardName, createdBy);
+                            // Add the board to the list
+                            boardsList.add(board);
 
                     }
                     populateBoardsListToUI(boardsList);
 
                 } else {
-                    Log.e("Main Activity", "errorUploadingBoards");
+                    Log.e("userIdddd", "errorUploadingBoards");
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
-                Log.e("Main Activity", e.getMessage());
+                Log.e("userIdddd", e.getMessage());
             }
-        }, errorMessage -> Log.e("Main Activity", errorMessage));
+        }, errorMessage -> Log.e("userIdddd", errorMessage));
 
 
 

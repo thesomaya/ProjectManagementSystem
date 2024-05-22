@@ -7,12 +7,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class User implements Parcelable {
-    private int id;
+    private String id;
     private String name;
     private String email;
     private String password;
     private String image;
-    private String mobile;
+    private long mobile;
     private String fcmToken;
     private boolean selected;
 
@@ -21,24 +21,16 @@ public class User implements Parcelable {
     }
 
     protected User(Parcel in) {
-        id = in.readInt();
+        id = in.readString();
         name = in.readString();
         email = in.readString();
         password = in.readString();
         image = in.readString();
-        mobile = in.readString();
+        mobile = in.readLong();
         fcmToken = in.readString();
     }
 
-    public User(int id, String name, String email, String image, String mobile) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.image = image;
-        this.mobile = mobile;
-    }
-
-    public User(int id, String name, String email) {
+    public User(String id, String name, String email) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -50,11 +42,11 @@ public class User implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(id);
+        dest.writeString(id);
         dest.writeString(name);
         dest.writeString(email);
         dest.writeString(image);
-        dest.writeString(mobile);
+        dest.writeLong(mobile);
         dest.writeString(fcmToken);
     }
 
@@ -76,11 +68,11 @@ public class User implements Parcelable {
     };
 
     // Getters and setters for private fields
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -108,11 +100,11 @@ public class User implements Parcelable {
         this.image = image;
     }
 
-    public String getMobile() {
+    public long getMobile() {
         return mobile;
     }
 
-    public void setMobile(String mobile) {
+    public void setMobile(long mobile) {
         this.mobile = mobile;
     }
 
@@ -135,7 +127,7 @@ public class User implements Parcelable {
     // Method to create a User object from a JSON object
     public static User fromJson(JSONObject jsonObject) throws JSONException {
         User user = new User();
-        user.setId(jsonObject.getInt("user_id"));
+        user.setId(jsonObject.getString("user_id"));
         user.setName(jsonObject.getString("name"));
         user.setEmail(jsonObject.getString("email"));
 

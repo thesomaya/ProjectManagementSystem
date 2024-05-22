@@ -41,13 +41,6 @@ public class Board implements Parcelable {
         this.createdBy = createdBy;
     }
 
-    public Board(int id, String name, String createdBy, String image) {
-        this.id=id;
-        this.name = name;
-        this.createdBy = createdBy;
-        this.image = image;
-    }
-
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(id);

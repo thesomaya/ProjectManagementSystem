@@ -10,11 +10,9 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.PopupMenu;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.myjavaapplication.R;
-import com.example.myjavaapplication.adapters.ItemTouchHelperCallback;
 import com.example.myjavaapplication.adapters.TaskListItemsAdapter;
 import com.example.myjavaapplication.controllers.CardFetchCallback;
 import com.example.myjavaapplication.controllers.VolleyRequest;
@@ -28,7 +26,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -307,11 +304,15 @@ public class TaskListActivity extends BaseActivity {
                     for (int i = 0; i < dataArray.length(); i++) {
                         JSONObject cardObject = dataArray.getJSONObject(i);
                         int cardId = cardObject.getInt("card_id");
+                        int card_order = cardObject.getInt("card_order");
                         String cardName = cardObject.getString("name");
                         int createdBy = cardObject.getInt("created_by");
                         String assigned_to = cardObject.getString("user_name");
                         String due_date = cardObject.getString("due_date");
-                        Card card = new Card(cardId, cardName, String.valueOf(createdBy), due_date, assigned_to);
+                        String due_time = cardObject.getString("due_time");
+                        String label = cardObject.getString("label");
+                        Card card = new Card(cardId, card_order, cardName, String.valueOf(createdBy),
+                                due_date, due_time, assigned_to, label);
                         cardsList.add(card);
                         Log.e("CardActivityCard", cardName);
                     }
@@ -326,9 +327,10 @@ public class TaskListActivity extends BaseActivity {
         }, callback::onError);
     }
 
+
     public void updateCardsInTaskList(final int taskId, final ArrayList<Card> cards) {
         // Start by deleting the cards for the given task ID
-        deleteCardByTaskId(taskId, new VolleyRequest.VolleyCallback() {
+        setCardOrderZero(taskId, new VolleyRequest.VolleyCallback() {
             @Override
             public void onSuccess(JSONObject response) {
                 // Cards deleted successfully, start updating cards sequentially
@@ -350,7 +352,7 @@ public class TaskListActivity extends BaseActivity {
         }
 
         // Update the card at the current index
-        updateCardId(taskId, cards.get(index), new VolleyRequest.VolleyCallback() {
+        updateCardOrder(taskId, cards.get(index), new VolleyRequest.VolleyCallback() {
             @Override
             public void onSuccess(JSONObject response) {
                 // Card updated successfully, move to the next card
@@ -365,37 +367,9 @@ public class TaskListActivity extends BaseActivity {
         });
     }
 
-    public void updateCardId(int taskId, Card card, final VolleyRequest.VolleyCallback callback) {
+    public void updateCardOrder(int taskId, Card card, final VolleyRequest.VolleyCallback callback) {
         VolleyRequest volleyRequest = new VolleyRequest(this);
-        String url = links.LINK_CREATE_CARD;
-        JSONObject requestBody = new JSONObject();
-        try {
-            requestBody.put("task_id", taskId);
-            requestBody.put("created_by", card.getCreatedBy());
-            requestBody.put("name", card.getName());
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.e("CardActivityJSONException", Objects.requireNonNull(e.getMessage()));
-        }
-
-        // Make the POST request
-        volleyRequest.postRequest(url, requestBody, new VolleyRequest.VolleyCallback() {
-            @Override
-            public void onSuccess(JSONObject response) {
-                Log.d("CardUpdatedSuccessfully", "Card updated successfully");
-                callback.onSuccess(response); // Pass the success callback
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e("CardUpdateError", "Error updating card: " + error);
-                callback.onError(error); // Pass the error callback
-            }
-        });
-    }
-    private void deleteCardByTaskId(int taskId, final VolleyRequest.VolleyCallback callback) {
-        VolleyRequest volleyRequest = new VolleyRequest(this);
-        String url = links.LINK_DELETE_CARD_BY_TASK_ID + "?task_id=" + taskId;
+        String url = links.LINK_UPDATE_CARD_ORDER + "?task_id=" + taskId +"&card_id="+card.getId();
 
         // Make the GET request
         volleyRequest.getRequest(url, response -> {
@@ -403,23 +377,48 @@ public class TaskListActivity extends BaseActivity {
                 String status = response.getString("status");
                 String message = response.getString("message");
                 if (status.equals("success")) {
-                    Log.i("DeleteCard", message);
+                    Log.i("updateCardOrder", message);
                     callback.onSuccess(response); // Call the success callback
                 } else {
-                    Log.e("DeleteCard", message);
-                    callback.onError("Delete operation failed");
+                    Log.e("updateCardOrder", message);
+                    callback.onError("updateCardOrder failed");
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
-                Log.e("DeleteCard", "Error: " + e.getMessage());
+                Log.e("updateCardOrder", "Error: " + e.getMessage());
                 callback.onError("JSON parsing error");
             }
         }, errorMessage -> {
-            Log.e("DeleteCard", "Error: " + errorMessage);
+            Log.e("updateCardOrder", "Error: " + errorMessage);
             callback.onError("Network error");
         });
     }
+    private void setCardOrderZero(int taskId, final VolleyRequest.VolleyCallback callback) {
+        VolleyRequest volleyRequest = new VolleyRequest(this);
+        String url = links.LINK_SET_CARD_ORDER_ZERO + "?task_id=" + taskId;
 
+        // Make the GET request
+        volleyRequest.getRequest(url, response -> {
+            try {
+                String status = response.getString("status");
+                String message = response.getString("message");
+                if (status.equals("success")) {
+                    Log.i("setCardOrderZero", message);
+                    callback.onSuccess(response); // Call the success callback
+                } else {
+                    Log.e("setCardOrderZero", message);
+                    callback.onError("setCardOrderZero failed");
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e("setCardOrderZero", "Error: " + e.getMessage());
+                callback.onError("JSON parsing error");
+            }
+        }, errorMessage -> {
+            Log.e("setCardOrderZero", "Error: " + errorMessage);
+            callback.onError("Network error");
+        });
+    }
     public void deleteTaskById(int taskId) {
         VolleyRequest volleyRequest = new VolleyRequest(this);
         String url = links.LINK_DELETE_TASK + "?task_id=" + taskId;

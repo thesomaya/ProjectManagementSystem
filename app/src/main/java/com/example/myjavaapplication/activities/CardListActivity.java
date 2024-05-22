@@ -76,11 +76,14 @@ public class CardListActivity extends AppCompatActivity {
                     for (int i = 0; i < dataArray.length(); i++) {
                         JSONObject cardObject = dataArray.getJSONObject(i);
                         int cardId = cardObject.getInt("card_id");
+                        int cardOrder = cardObject.getInt("card_order");
                         String taskName = cardObject.getString("name");
                         int createdBy = cardObject.getInt("created_by");
                         String assigned_to=cardObject.getString("user_name");
                         String due_date = cardObject.getString("due_date");
-                        Card card = new Card(cardId, taskName, String.valueOf(createdBy),due_date,assigned_to);
+                        String due_time = cardObject.getString("due_time");
+                        String label = cardObject.getString("label");
+                        Card card = new Card(cardId, cardOrder, taskName, String.valueOf(createdBy),due_date, due_time,assigned_to,label);
                         cardsList.add(card);
 
                     }

@@ -112,9 +112,9 @@ public class CreateCardActivity extends BaseActivity {
             try {
                 int member_id = Integer.parseInt(member_id_string);
                 Log.e("member_id", String.valueOf(member_id));
-                requestBody.put("member_id", member_id);
+                //requestBody.put("member_id", member_id);
                 requestBody.put("name", binding.etCardName.getText().toString());
-                requestBody.put("due_date", binding.etDueDate.getText().toString());
+                //requestBody.put("due_date", binding.etDueDate.getText().toString());
                 Log.e("member_id", binding.etDueDate.getText().toString());
             } catch (NumberFormatException e) {
                 Log.e("CardActivityIntegerConvert","member_id_string is not a valid integer");

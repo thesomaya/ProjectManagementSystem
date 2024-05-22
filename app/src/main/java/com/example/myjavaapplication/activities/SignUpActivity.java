@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import com.example.myjavaapplication.R;
 import com.example.myjavaapplication.controllers.SharedPreference;
+import com.example.myjavaapplication.controllers.UserController;
 import com.example.myjavaapplication.controllers.VolleyRequest;
 import com.example.myjavaapplication.controllers.links;
 import com.example.myjavaapplication.databinding.ActivitySignUpBinding;
@@ -22,6 +23,7 @@ import org.json.JSONObject;
 public class SignUpActivity extends BaseActivity {
     private ActivitySignUpBinding binding;
     SharedPreference sharedPreference;
+    UserController userController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +31,7 @@ public class SignUpActivity extends BaseActivity {
         binding = ActivitySignUpBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         sharedPreference = new SharedPreference(this);
+        userController = new UserController(sharedPreference);
 
         // This is used to hide the status bar and make the splash screen as a full screen activity.
         getWindow().setFlags(

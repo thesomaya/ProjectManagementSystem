@@ -2,8 +2,6 @@ package com.example.myjavaapplication.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,10 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,20 +20,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.myjavaapplication.R;
 import com.example.myjavaapplication.activities.TaskListActivity;
 import com.example.myjavaapplication.controllers.CardFetchCallback;
-import com.example.myjavaapplication.controllers.ItemTouchHelperAdapter;
-import com.example.myjavaapplication.controllers.VolleyRequest;
-import com.example.myjavaapplication.controllers.links;
 import com.example.myjavaapplication.model.Card;
 import com.example.myjavaapplication.model.Task;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class TaskListItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemTouchHelperAdapter {
+public class TaskListItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context context;
     private ArrayList<Task> list;
@@ -200,16 +189,10 @@ public class TaskListItemsAdapter extends RecyclerView.Adapter<RecyclerView.View
                         CardListItemsAdapter adapter = new CardListItemsAdapter(context, cards);
                         rv_card_list.setAdapter(adapter);
 
-                        // Create the ItemTouchHelperCallback with the adapter instance
-                        ItemTouchHelper.Callback callback = new ItemTouchHelperCallback(adapter);
-
-                        // Create ItemTouchHelper with the callback
-                        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
-
-                        // Attach ItemTouchHelper to the RecyclerView
-                        itemTouchHelper.attachToRecyclerView(rv_card_list);
 
 
+
+                        //drag and drop
                         ItemTouchHelper helper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
 
                             @Override
@@ -236,8 +219,8 @@ public class TaskListItemsAdapter extends RecyclerView.Adapter<RecyclerView.View
                             @Override
                             public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
                                 super.clearView(recyclerView, viewHolder);
-
-                                if (mPositionDraggedFrom != -1 && mPositionDraggedTo != -1 && mPositionDraggedFrom != mPositionDraggedTo) {
+                                if (mPositionDraggedFrom != -1 && mPositionDraggedTo != -1 &&
+                                        mPositionDraggedFrom != mPositionDraggedTo) {
                                     ((TaskListActivity) context).updateCardsInTaskList(model.getId(), cards);
                                 }
 
@@ -268,32 +251,6 @@ public class TaskListItemsAdapter extends RecyclerView.Adapter<RecyclerView.View
     }
 
 
-    @Override
-    public boolean onItemMove(int fromPosition, int toPosition) {
-        Collections.swap(list, fromPosition, toPosition);
-
-        // Notify adapter that data has changed
-        notifyItemMoved(fromPosition, toPosition);
-
-        // Implement logic to update database or perform any necessary actions
-        return true;
-    }
-
-    @Override
-    public void onItemDismiss(int position) {
-
-    }
-
-    @Override
-    public void onDragStarted(RecyclerView.ViewHolder viewHolder) {
-
-    }
-
-    @Override
-    public void onDragEnded(RecyclerView.ViewHolder viewHolder) {
-
-    }
-
 
     private void alertDialogForDeleteList(int position, String title) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -301,10 +258,11 @@ public class TaskListItemsAdapter extends RecyclerView.Adapter<RecyclerView.View
         builder.setMessage("Are you sure you want to delete " + title + ".");
         builder.setIcon(android.R.drawable.ic_dialog_alert);
         builder.setPositiveButton("Yes", (dialogInterface, which) -> {
-            dialogInterface.dismiss();
+
 
             if (context instanceof TaskListActivity) {
                 ((TaskListActivity) context).deleteTaskById(position);
+                dialogInterface.dismiss();
             }
         });
 

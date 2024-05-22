@@ -1,10 +1,4 @@
-
-
 package com.example.myjavaapplication.activities;
-
-import static com.example.myjavaapplication.controllers.links.LINK_CREATE_BOARD;
-import static com.example.myjavaapplication.controllers.links.LINK_UPLOAD_IMAGES_BOARD;
-import static com.example.myjavaapplication.controllers.links.LINK_UPLOAD_IMAGES_USER;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,51 +6,32 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.example.myjavaapplication.R;
+import com.example.myjavaapplication.controllers.BoardsController;
 import com.example.myjavaapplication.controllers.SharedPreference;
+import com.example.myjavaapplication.controllers.UserController;
 import com.example.myjavaapplication.controllers.VolleyRequest;
 import com.example.myjavaapplication.controllers.links;
 import com.example.myjavaapplication.databinding.ActivityCreateBoardBinding;
 import com.example.myjavaapplication.model.Board;
 import com.example.myjavaapplication.utils.Constants;
-import com.google.protobuf.StringValue;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class CreateBoardActivity extends BaseActivity {
 
     private Uri mSelectedImageFileUri;
     private String mUserName;
+    private String mBoardImageURL = "";
     private ActivityCreateBoardBinding binding;
     SharedPreference sharedPreference;
-    SharedPreferences sharedPref;
-    String base64Image = null;
-
-    int userId;
+    BoardsController boardsController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,31 +39,27 @@ public class CreateBoardActivity extends BaseActivity {
         binding = ActivityCreateBoardBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         sharedPreference = new SharedPreference(CreateBoardActivity.this);
-        sharedPref = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
-        userId = sharedPref.getInt("USER_ID", -1);
+        boardsController = new BoardsController(sharedPreference);
         setupActionBar();
 
         if (getIntent().hasExtra(Constants.NAME)) {
             mUserName = getIntent().getStringExtra(Constants.NAME);
         }
 
-        binding.ivBoardImage.setOnClickListener(v -> {
+        binding.ivBoardImage.setOnClickListener(view -> {
 
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            sActivityResultLauncher.launch(intent);
-
-        });
+    });
 
         binding.btnCreate.setOnClickListener(view -> {
-
-            try {
-                createNewBoard(mSelectedImageFileUri);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-        });
+        if (mSelectedImageFileUri != null) {
+            uploadBoardImage();
+        } else {
+            createNewBoard();
+        }
+    });
     }
+
+
 
     private void setupActionBar() {
         setSupportActionBar(binding.toolbarCreateBoardActivity);
@@ -106,6 +77,10 @@ public class CreateBoardActivity extends BaseActivity {
         finish();
     }
 
+    private void uploadBoardImage() {
+
+    }
+
     private void boardCreatedSuccessfully() {
         Log.e("boardCreatedSuccessfully1","boardCreatedSuccessfully");
         hideProgressDialog();
@@ -115,77 +90,54 @@ public class CreateBoardActivity extends BaseActivity {
         finish();
     }
 
-    private void createNewBoard (Uri imageUri) throws IOException {
+    private void createNewBoard() {
+        showProgressDialog(getResources().getString(R.string.please_wait));
 
-        if (imageUri != null) {
-            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-            byte[] imageBytes = readInputStreamToByteArray(inputStream);
-            base64Image = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+        SharedPreferences sharedPref = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
+        int userId = sharedPref.getInt("USER_ID", -1);
+
+        VolleyRequest volleyRequest = new VolleyRequest(this);
+        String url = links.LINK_CREATE_BOARD;
+        JSONObject requestBody = new JSONObject();
+        try {
+            requestBody.put("created_by", userId);
+            requestBody.put("name", binding.etBoardName.getText().toString());
+            //requestBody.put("image", mBoardImageURL);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e("JSONException",e.getMessage());
         }
-            RequestQueue queue = Volley.newRequestQueue(this);
-            String url = LINK_CREATE_BOARD;
 
-            StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            try {
-                                JSONObject jsonResponse = new JSONObject(response);
-                                String status = jsonResponse.getString("status");
-
-                                if (status.equals("success")) {
-                                    Toast.makeText(CreateBoardActivity.this, "Board created successfully", Toast.LENGTH_SHORT).show();
-                                    boardCreatedSuccessfully();
-                                } else {
-                                    String error = jsonResponse.getString("error");
-                                    Toast.makeText(CreateBoardActivity.this, "Failed to create board: " + error, Toast.LENGTH_SHORT).show();
-                                    hideProgressDialog();
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                Toast.makeText(CreateBoardActivity.this, "Response parsing error", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Toast.makeText(CreateBoardActivity.this, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }){
-                protected Map<String, String> getParams(){
-                    Map<String, String> paramV = new HashMap<>();
-                    paramV.put("created_by", String.valueOf(userId));
-                    paramV.put("name", binding.etBoardName.getText().toString());
-                    if (base64Image != null)
-                        paramV.put("image", base64Image);
-                    return paramV;
-                }
-            };
-            queue.add(stringRequest);
-    }
-    ActivityResultLauncher<Intent> sActivityResultLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            new ActivityResultCallback<ActivityResult>() {
-                @Override
-                public void onActivityResult(ActivityResult result) {
-
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-                        Intent data = result.getData();
-                        mSelectedImageFileUri = data.getData();
-                        binding.ivBoardImage.setImageURI(mSelectedImageFileUri);
+        // Make the POST request
+        volleyRequest.postRequest(url, requestBody, new VolleyRequest.VolleyCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+                    if (response.has("status") && response.getString("status").equals("success")) {
+                        boardCreatedSuccessfully();
+                    } else {
+                        // If the response has an error message, display it as a toast
+                        hideProgressDialog();
+                        String errorMessage = response.getString("error");
+                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
                     }
+                } catch (JSONException e) {
+                    hideProgressDialog();
+                    e.printStackTrace();
+                    Log.e("CreateBoardActivityJSONException", e.getMessage());
                 }
             }
-    );
-    private byte[] readInputStreamToByteArray(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[1024];
-        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
-        }
-        inputStream.close();
-        return buffer.toByteArray();
+
+            @Override
+            public void onError(String error) {
+                hideProgressDialog();
+                Log.e("ErrorAddingBoard",error);
+            }
+
+
+        });
+
     }
+
 
 }
