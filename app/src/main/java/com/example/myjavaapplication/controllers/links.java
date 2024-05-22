@@ -1,7 +1,7 @@
 package com.example.myjavaapplication.controllers;
 
 public class links {
-    public static final String LINK_SERVER_NAME = "http://192.168.1.143/myproject";
+    public static final String LINK_SERVER_NAME = "http://192.168.1.29/myproject";
     public static final String LINK_SIGNUP = LINK_SERVER_NAME + "/users/createUser.php";
     public static final String LINK_AUTHUSER = LINK_SERVER_NAME + "/users/authUser.php";
     public static final String LINK_EMAIL_SUGGESTION = LINK_SERVER_NAME + "/users/getEmailSuggestion.php";
