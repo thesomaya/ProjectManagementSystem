@@ -30,17 +30,20 @@ CREATE TABLE IF NOT EXISTS tasks (
 -- Create cards table
 CREATE TABLE IF NOT EXISTS cards (
     card_id INT AUTO_INCREMENT PRIMARY KEY,
+    card_order INT,
     task_id INT,
     name VARCHAR(255) NOT NULL,
     created_by INT,
     member_id INT,
-    due_date VARCHAR(255) NOT NULL,
-    status VARCHAR(255),
+    due_date VARCHAR(255),
+    due_time VARCHAR(255),
+    label VARCHAR(255),
+    document VARCHAR(255),
     FOREIGN KEY (task_id) REFERENCES tasks(task_id),
     FOREIGN KEY (created_by) REFERENCES users(user_id),
     FOREIGN KEY (member_id) REFERENCES users(user_id)
 );
-
+-- Create members table
 -- Create members table
 CREATE TABLE IF NOT EXISTS members (
     member_id INT AUTO_INCREMENT PRIMARY KEY,

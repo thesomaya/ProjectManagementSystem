@@ -2,7 +2,6 @@
 
 include "../connection.php";
 
-// Assuming $con holds your PDO connection
 
 // Check if board_id is provided in the request
 if(isset($_GET['task_id'])) {
@@ -12,7 +11,7 @@ if(isset($_GET['task_id'])) {
     $sql = "SELECT cards.*, users.name AS user_name
             FROM cards 
             LEFT JOIN users ON cards.member_id = users.user_id 
-            WHERE task_id = :task_id";
+            WHERE task_id = :task_id ORDER BY `card_order`";
     $stmt = $con->prepare($sql);
     $stmt->bindParam(':task_id', $task_id);
     $stmt->execute();
