@@ -1,0 +1,95 @@
+public void updateCardDetails(int cardId, String name, int member_id, String due_date, String due_time, String label, Uri uri) {
+        VolleyRequest volleyRequest = new VolleyRequest(context);
+        String url = links.LINK_UPDATE_CARD_DETAILS + "?card_id="+cardId + "&name=" + name + "&member_id=" + member_id
+                + "&due_date=" + due_date + "&due_time=" + due_time + "&label=" + label+ "&document=" + uri;
+        System.out.println("due_date: "+due_date+"  &document=" + uri );
+
+        // Make the GET request
+        volleyRequest.getRequest(url, response -> {
+            try {
+                String status = response.getString("status");
+                String message = response.getString("message");
+                if (status.equals("success")) {
+                    Log.i("updateCardDetails", message);
+                    context.startActivity(new Intent(context, TaskListActivity.class));
+                    if (context instanceof TaskListActivity) {
+                        ((TaskListActivity) context).finish();
+                    }
+
+                } else {
+                    Log.e("updateCardDetails", message);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e("updateCardDetails", "Error: " + e.getMessage());
+            }
+        }, errorMessage -> {
+            Log.e("updateCardDetails", "Error: " + errorMessage);
+        });
+    }
+
+
+
+    <?php
+
+    include "../connection.php";
+
+    if (
+        isset($_GET['card_id']) && isset($_GET['name']) && isset($_GET['member_id'])
+        && isset($_GET['due_date']) && isset($_GET['due_time']) && isset($_GET['label'])
+        && isset($_GET['document'])
+    ) {
+        $card_id = $_GET['card_id'];
+        $name = $_GET['name'];
+        $member_id = $_GET['member_id'];
+        $due_date = $_GET['due_date'];
+        $due_time = $_GET['due_time'];
+        $label = $_GET['label'];
+
+        // Handle the document upload if provided
+        $completePath = null;
+        if (!empty($_GET['document'])) {
+            $extension = pathinfo($_GET["document"], PATHINFO_EXTENSION);
+            $path = 'upload/' . date('d-m-Y') . '-' . time() . '-' . rand(1000, 100000) . '.' . "pdf";
+            if (move_uploaded_file($_GET["document"], $path)) {
+                $completePath = "http://192.168.1.143/myproject/cards/" . $path;
+            } else {
+                echo json_encode(array("status" => "failed", "error" => "Failed to upload document"));
+                exit;
+            }
+        }
+
+        // Update the card in the database
+        $sql = "UPDATE cards SET
+            name = :name,
+            member_id = :member_id,
+            due_date = :due_date,
+            due_time = :due_time,
+            label = :label,
+            document = :document
+            WHERE card_id = :card_id";
+
+        $stmt = $con->prepare($sql);
+
+        $stmt->bindParam(':card_id', $card_id);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':member_id', $member_id);
+        $stmt->bindParam(':due_date', $due_date);
+        $stmt->bindParam(':due_time', $due_time);
+        $stmt->bindParam(':label', $label);
+        $stmt->bindParam(':document', $completePath);
+
+        if ($stmt->execute()) {
+            $rowCount = $stmt->rowCount();
+            if ($rowCount > 0) {
+                echo json_encode(array("status" => "success", "message" => "Card updated successfully for the card ID: $card_id"));
+            } else {
+                echo json_encode(array("status" => "fail", "message" => "No changes were made to the card for the card ID: $card_id"));
+            }
+        } else {
+            echo json_encode(array("status" => "fail", "message" => "Failed to update Card for the card ID: $card_id"));
+        }
+    } else {
+        echo json_encode(array("status" => "fail", "message" => "Parameters are missing or file not uploaded."));
+    }
+    ?>
